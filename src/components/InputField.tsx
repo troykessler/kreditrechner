@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 interface InputFieldProps {
   label: string;
   value: number;
@@ -19,11 +21,21 @@ export default function InputField({
   unit,
   formatDisplay,
 }: InputFieldProps) {
-  const display = formatDisplay ? formatDisplay(value) : value.toString();
+  const [focused, setFocused] = useState(false);
 
-  const handleInput = (raw: string) => {
+  // When focused: show raw number for easy editing. When blurred: show formatted value.
+  const displayValue = focused ? value.toString() : (formatDisplay ? formatDisplay(value) : value.toString());
+  // Hide unit label when formatDisplay already embeds the unit
+  const showUnit = !formatDisplay;
+
+  const handleChange = (raw: string) => {
     const n = parseFloat(raw.replace(/[^0-9.,]/g, "").replace(",", "."));
     if (!isNaN(n)) onChange(Math.min(max, Math.max(min, n)));
+  };
+
+  const handleBlur = (raw: string) => {
+    setFocused(false);
+    handleChange(raw);
   };
 
   return (
@@ -34,10 +46,12 @@ export default function InputField({
           <input
             type="text"
             className="input-number"
-            value={display}
-            onChange={(e) => handleInput(e.target.value)}
+            value={displayValue}
+            onFocus={(e) => { setFocused(true); e.target.select(); }}
+            onChange={(e) => handleChange(e.target.value)}
+            onBlur={(e) => handleBlur(e.target.value)}
           />
-          <span className="input-unit">{unit}</span>
+          {showUnit && <span className="input-unit">{unit}</span>}
         </div>
       </div>
       <input

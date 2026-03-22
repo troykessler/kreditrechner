@@ -26,4 +26,5 @@ export interface AnnuitaetResult {
   gesamtzahlung: number;
   gesamtzinsen: number;
   tilgungsplan: YearlyEntry[];
+  tilgungsplanMonatlich: MonthlyEntry[];
 }

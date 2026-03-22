@@ -1,45 +1,64 @@
 import { useState } from "react";
-import type { YearlyEntry } from "../types/loan";
+import type { YearlyEntry, MonthlyEntry } from "../types/loan";
 import { formatEuro } from "../utils/format";
 
 interface Props {
-  data: YearlyEntry[];
+  yearly: YearlyEntry[];
+  monthly: MonthlyEntry[];
+  view: "jährlich" | "monatlich";
 }
 
-export default function AmortizationTable({ data }: Props) {
+const DEFAULT_ROWS = 12;
+
+export default function AmortizationTable({ yearly, monthly, view }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const rows = expanded ? data : data.slice(0, 5);
+
+  const allRows = view === "monatlich" ? monthly : yearly;
+  const rows = expanded ? allRows : allRows.slice(0, DEFAULT_ROWS);
+  const isMonatlich = view === "monatlich";
 
   return (
     <div className="table-container">
-      <h2 className="section-title">Tilgungsplan – Jahresübersicht</h2>
+      <h2 className="section-title">Tilgungsplan – {isMonatlich ? "Monatsübersicht" : "Jahresübersicht"}</h2>
       <div className="table-scroll">
         <table className="amort-table">
           <thead>
             <tr>
-              <th>Jahr</th>
-              <th>Monatliche Rate</th>
-              <th>Jahreszinsen</th>
-              <th>Jahrestilgung</th>
+              <th>{isMonatlich ? "Monat" : "Jahr"}</th>
+              <th>{isMonatlich ? "Rate" : "Monatliche Rate"}</th>
+              <th>{isMonatlich ? "Zinsen" : "Jahreszinsen"}</th>
+              <th>{isMonatlich ? "Tilgung" : "Jahrestilgung"}</th>
               <th>Restschuld</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row.jahr}>
-                <td>{row.jahr}</td>
-                <td>{formatEuro(row.rate / 12)}</td>
-                <td className="zinsen-cell">{formatEuro(row.zinsbetrag)}</td>
-                <td className="tilgung-cell">{formatEuro(row.tilgungsbetrag)}</td>
-                <td>{formatEuro(row.restschuld)}</td>
-              </tr>
-            ))}
+            {isMonatlich
+              ? (rows as MonthlyEntry[]).map((row) => (
+                  <tr key={row.monat}>
+                    <td>{row.monat}</td>
+                    <td>{formatEuro(row.rate)}</td>
+                    <td className="zinsen-cell">{formatEuro(row.zinsbetrag)}</td>
+                    <td className="tilgung-cell">{formatEuro(row.tilgungsbetrag)}</td>
+                    <td>{formatEuro(row.restschuld)}</td>
+                  </tr>
+                ))
+              : (rows as YearlyEntry[]).map((row) => (
+                  <tr key={row.jahr}>
+                    <td>{row.jahr}</td>
+                    <td>{formatEuro(row.rate / 12)}</td>
+                    <td className="zinsen-cell">{formatEuro(row.zinsbetrag)}</td>
+                    <td className="tilgung-cell">{formatEuro(row.tilgungsbetrag)}</td>
+                    <td>{formatEuro(row.restschuld)}</td>
+                  </tr>
+                ))}
           </tbody>
         </table>
       </div>
-      {data.length > 5 && (
+      {allRows.length > DEFAULT_ROWS && (
         <button className="expand-btn" onClick={() => setExpanded((e) => !e)}>
-          {expanded ? "Weniger anzeigen ↑" : `Alle ${data.length} Jahre anzeigen ↓`}
+          {expanded
+            ? "Weniger anzeigen ↑"
+            : `Alle ${allRows.length} ${isMonatlich ? "Monate" : "Jahre"} anzeigen ↓`}
         </button>
       )}
     </div>

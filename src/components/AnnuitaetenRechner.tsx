@@ -5,6 +5,8 @@ import SummaryCards from "./SummaryCards";
 import AmortizationChart from "./AmortizationChart";
 import AmortizationTable from "./AmortizationTable";
 
+type View = "jährlich" | "monatlich";
+
 const formatK = (v: number) => {
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)} Mio €`;
   if (v >= 1_000) return `${(v / 1_000).toFixed(0)}k €`;
@@ -15,6 +17,7 @@ export default function AnnuitaetenRechner() {
   const [kreditsumme, setKreditsumme] = useState(300_000);
   const [zinssatz, setZinssatz] = useState(3.5);
   const [laufzeit, setLaufzeit] = useState(20);
+  const [view, setView] = useState<View>("jährlich");
 
   const result = useMemo(
     () => calcAnnuitaetendarlehen({ kreditsumme, zinssatz, laufzeit }),
@@ -80,8 +83,31 @@ export default function AnnuitaetenRechner() {
           gesamtzinsen={result.gesamtzinsen}
           kreditsumme={kreditsumme}
         />
-        <AmortizationChart data={result.tilgungsplan} />
-        <AmortizationTable data={result.tilgungsplan} />
+
+        <div className="view-toggle-row">
+          <div className="view-toggle">
+            {(["jährlich", "monatlich"] as View[]).map((v) => (
+              <button
+                key={v}
+                className={`view-toggle-btn ${view === v ? "active" : ""}`}
+                onClick={() => setView(v)}
+              >
+                {v.charAt(0).toUpperCase() + v.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <AmortizationChart
+          yearly={result.tilgungsplan}
+          monthly={result.tilgungsplanMonatlich}
+          view={view}
+        />
+        <AmortizationTable
+          yearly={result.tilgungsplan}
+          monthly={result.tilgungsplanMonatlich}
+          view={view}
+        />
       </main>
     </div>
   );

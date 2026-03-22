@@ -9,18 +9,21 @@ import {
   Line,
   ComposedChart,
 } from "recharts";
-import type { YearlyEntry } from "../types/loan";
+import type { YearlyEntry, MonthlyEntry } from "../types/loan";
 import { formatEuro } from "../utils/format";
 
 interface Props {
-  data: YearlyEntry[];
+  yearly: YearlyEntry[];
+  monthly: MonthlyEntry[];
+  view: "jährlich" | "monatlich";
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, view }: any) => {
   if (!active || !payload?.length) return null;
+  const periodLabel = view === "monatlich" ? `Monat ${label}` : `Jahr ${label}`;
   return (
     <div className="chart-tooltip">
-      <p className="tooltip-title">Jahr {label}</p>
+      <p className="tooltip-title">{periodLabel}</p>
       {payload.map((entry: any) => (
         <p key={entry.name} style={{ color: entry.color }} className="tooltip-row">
           <span>{entry.name}:</span>
@@ -31,7 +34,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export default function AmortizationChart({ data }: Props) {
+export default function AmortizationChart({ yearly, monthly, view }: Props) {
+  const data: { period: number; zinsbetrag: number; tilgungsbetrag: number; restschuld: number }[] =
+    view === "monatlich"
+      ? monthly.map((m) => ({ period: m.monat, zinsbetrag: m.zinsbetrag, tilgungsbetrag: m.tilgungsbetrag, restschuld: m.restschuld }))
+      : yearly.map((y) => ({ period: y.jahr, zinsbetrag: y.zinsbetrag, tilgungsbetrag: y.tilgungsbetrag, restschuld: y.restschuld }));
+
+  // In monthly view with many data points, only show every 12th x-axis tick
+  const tickCount = data.length;
+  const xTickFormatter = (v: number) =>
+    view === "monatlich"
+      ? tickCount > 60 && v % 12 !== 0 ? "" : `M${v}`
+      : `J${v}`;
+
   return (
     <div className="chart-container">
       <h2 className="section-title">Tilgungsplan – Übersicht</h2>
@@ -39,11 +54,12 @@ export default function AmortizationChart({ data }: Props) {
         <ComposedChart data={data} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis
-            dataKey="jahr"
-            tickFormatter={(v) => `J${v}`}
+            dataKey="period"
+            tickFormatter={xTickFormatter}
             tick={{ fontSize: 12, fill: "var(--text-muted)" }}
             axisLine={false}
             tickLine={false}
+            interval={view === "monatlich" ? 11 : 0}
           />
           <YAxis
             yAxisId="left"
@@ -62,7 +78,7 @@ export default function AmortizationChart({ data }: Props) {
             tickLine={false}
             width={45}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--hover-bg)" }} />
+          <Tooltip content={<CustomTooltip view={view} />} cursor={{ fill: "var(--hover-bg)" }} />
           <Legend
             formatter={(value) => (
               <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>{value}</span>
@@ -74,7 +90,6 @@ export default function AmortizationChart({ data }: Props) {
             name="Tilgung"
             stackId="a"
             fill="var(--color-tilgung)"
-            radius={[0, 0, 0, 0]}
           />
           <Bar
             yAxisId="left"
@@ -82,7 +97,7 @@ export default function AmortizationChart({ data }: Props) {
             name="Zinsen"
             stackId="a"
             fill="var(--color-zinsen)"
-            radius={[4, 4, 0, 0]}
+            radius={[2, 2, 0, 0]}
           />
           <Line
             yAxisId="right"
