@@ -5,6 +5,15 @@ export interface AnnuitaetParams {
   tilgungssatz?: number; // optional initial tilgungssatz in percent (alternative to laufzeit)
 }
 
+export interface SharedLoanParams {
+  kreditsumme: number;
+  zinssatz: number;
+  laufzeit: number;
+  setKreditsumme: (v: number) => void;
+  setZinssatz: (v: number) => void;
+  setLaufzeit: (v: number) => void;
+}
+
 export interface MonthlyEntry {
   monat: number;
   rate: number;

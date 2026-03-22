@@ -15,6 +15,12 @@ const LOAN_TYPES: { id: LoanType; label: string }[] = [
 export default function App() {
   const [active, setActive] = useState<LoanType>("annuitaeten");
 
+  const [kreditsumme, setKreditsumme] = useState(300_000);
+  const [zinssatz, setZinssatz] = useState(3.5);
+  const [laufzeit, setLaufzeit] = useState(20);
+
+  const sharedParams = { kreditsumme, zinssatz, laufzeit, setKreditsumme, setZinssatz, setLaufzeit };
+
   return (
     <div className="app">
       <header className="app-header">
@@ -38,9 +44,9 @@ export default function App() {
       </header>
 
       <div className="page-wrapper">
-        {active === "annuitaeten" && <AnnuitaetenRechner />}
-        {active === "ratentilgung" && <RatentilgungRechner />}
-        {active === "endfaellige" && <EndfaelligeRechner />}
+        {active === "annuitaeten" && <AnnuitaetenRechner {...sharedParams} />}
+        {active === "ratentilgung" && <RatentilgungRechner {...sharedParams} />}
+        {active === "endfaellige" && <EndfaelligeRechner {...sharedParams} />}
       </div>
     </div>
   );

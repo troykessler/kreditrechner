@@ -5,6 +5,7 @@ import SummaryCards from "./SummaryCards";
 import AmortizationChart from "./AmortizationChart";
 import AmortizationTable from "./AmortizationTable";
 import { formatEuro } from "../utils/format";
+import type { SharedLoanParams } from "../types/loan";
 
 type View = "jährlich" | "monatlich";
 
@@ -14,10 +15,7 @@ const formatK = (v: number) => {
   return `${v} €`;
 };
 
-export default function EndfaelligeRechner() {
-  const [kreditsumme, setKreditsumme] = useState(300_000);
-  const [zinssatz, setZinssatz] = useState(3.5);
-  const [laufzeit, setLaufzeit] = useState(20);
+export default function EndfaelligeRechner({ kreditsumme, zinssatz, laufzeit, setKreditsumme, setZinssatz, setLaufzeit }: SharedLoanParams) {
   const [view, setView] = useState<View>("jährlich");
 
   const result = useMemo(
