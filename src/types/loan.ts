@@ -8,10 +8,10 @@ export interface AnnuitaetParams {
 export interface SharedLoanParams {
   kreditsumme: number;
   zinssatz: number;
-  laufzeit: number;
+  monatlicheRate: number;
   setKreditsumme: (v: number) => void;
   setZinssatz: (v: number) => void;
-  setLaufzeit: (v: number) => void;
+  setMonatlicheRate: (v: number) => void;
 }
 
 export interface MonthlyEntry {

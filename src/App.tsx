@@ -12,14 +12,30 @@ const LOAN_TYPES: { id: LoanType; label: string }[] = [
   { id: "endfaellige", label: "Endfällige Tilgung" },
 ];
 
+/** Monthly interest-only payment — the hard minimum for any amortising loan. */
+function minRate(kreditsumme: number, zinssatz: number) {
+  return Math.ceil(kreditsumme * zinssatz / 100 / 12) + 10;
+}
+
 export default function App() {
   const [active, setActive] = useState<LoanType>("annuitaeten");
 
-  const [kreditsumme, setKreditsumme] = useState(300_000);
-  const [zinssatz, setZinssatz] = useState(3.5);
-  const [laufzeit, setLaufzeit] = useState(20);
+  const [kreditsumme, setKreditsummeRaw] = useState(300_000);
+  const [zinssatz, setZinssatzRaw] = useState(3.5);
+  // Default ≈ 20-year annuity for 300k @ 3.5%
+  const [monatlicheRate, setMonatlicheRate] = useState(1_740);
 
-  const sharedParams = { kreditsumme, zinssatz, laufzeit, setKreditsumme, setZinssatz, setLaufzeit };
+  const setKreditsumme = (v: number) => {
+    setKreditsummeRaw(v);
+    setMonatlicheRate((prev) => Math.max(prev, minRate(v, zinssatz)));
+  };
+
+  const setZinssatz = (v: number) => {
+    setZinssatzRaw(v);
+    setMonatlicheRate((prev) => Math.max(prev, minRate(kreditsumme, v)));
+  };
+
+  const sharedParams = { kreditsumme, zinssatz, monatlicheRate, setKreditsumme, setZinssatz, setMonatlicheRate };
 
   return (
     <div className="app">

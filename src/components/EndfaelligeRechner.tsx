@@ -15,11 +15,12 @@ const formatK = (v: number) => {
   return `${v} €`;
 };
 
-export default function EndfaelligeRechner({ kreditsumme, zinssatz, laufzeit, setKreditsumme, setZinssatz, setLaufzeit }: SharedLoanParams) {
+export default function EndfaelligeRechner({ kreditsumme, zinssatz, setKreditsumme, setZinssatz }: SharedLoanParams) {
+  const [laufzeit, setLaufzeit] = useState(20);
   const [view, setView] = useState<View>("jährlich");
 
   const result = useMemo(
-    () => calcEndfaellige({ kreditsumme, zinssatz, laufzeit }),
+    () => calcEndfaellige({ kreditsumme, zinssatz, laufzeitMonate: laufzeit * 12 }),
     [kreditsumme, zinssatz, laufzeit]
   );
 
@@ -43,7 +44,7 @@ export default function EndfaelligeRechner({ kreditsumme, zinssatz, laufzeit, se
           label="Sollzinssatz (p.a.)"
           value={zinssatz}
           onChange={setZinssatz}
-          min={0.1}
+          min={0}
           max={15}
           step={0.05}
           unit="%"
@@ -63,7 +64,7 @@ export default function EndfaelligeRechner({ kreditsumme, zinssatz, laufzeit, se
 
         <div className="sidebar-info">
           <div className="info-row">
-            <span>Monatliche Zinslast</span>
+            <span>Monatliche Zinszahlung</span>
             <strong>{formatEuro(result.monatlicheZinsrate)}</strong>
           </div>
           <div className="info-row">
@@ -100,16 +101,8 @@ export default function EndfaelligeRechner({ kreditsumme, zinssatz, laufzeit, se
           </div>
         </div>
 
-        <AmortizationChart
-          yearly={result.tilgungsplan}
-          monthly={result.tilgungsplanMonatlich}
-          view={view}
-        />
-        <AmortizationTable
-          yearly={result.tilgungsplan}
-          monthly={result.tilgungsplanMonatlich}
-          view={view}
-        />
+        <AmortizationChart yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} />
+        <AmortizationTable yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} />
       </main>
     </div>
   );

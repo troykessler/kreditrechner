@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { calcAnnuitaetendarlehen } from "../utils/annuitaetendarlehen";
 import InputField from "./InputField";
 import SummaryCards from "./SummaryCards";
-import { formatEuro } from "../utils/format";
+import { formatEuro, formatLaufzeit } from "../utils/format";
 import AmortizationChart from "./AmortizationChart";
 import AmortizationTable from "./AmortizationTable";
 import type { SharedLoanParams } from "../types/loan";
@@ -15,13 +15,20 @@ const formatK = (v: number) => {
   return `${v} €`;
 };
 
-export default function AnnuitaetenRechner({ kreditsumme, zinssatz, laufzeit, setKreditsumme, setZinssatz, setLaufzeit }: SharedLoanParams) {
+export default function AnnuitaetenRechner({ kreditsumme, zinssatz, monatlicheRate, setKreditsumme, setZinssatz, setMonatlicheRate }: SharedLoanParams) {
   const [view, setView] = useState<View>("jährlich");
 
+  const minRate = 100;
+  const maxRate = 5_000;
+
   const result = useMemo(
-    () => calcAnnuitaetendarlehen({ kreditsumme, zinssatz, laufzeit }),
-    [kreditsumme, zinssatz, laufzeit]
+    () => calcAnnuitaetendarlehen({ kreditsumme, zinssatz, monatlicheRate }),
+    [kreditsumme, zinssatz, monatlicheRate]
   );
+
+  const tilgungsanteil = result.laufzeitMonate > 0
+    ? (((monatlicheRate - kreditsumme * zinssatz / 100 / 12) / kreditsumme) * 100).toFixed(2)
+    : "—";
 
   return (
     <div className="rechner-layout">
@@ -43,7 +50,7 @@ export default function AnnuitaetenRechner({ kreditsumme, zinssatz, laufzeit, se
           label="Sollzinssatz (p.a.)"
           value={zinssatz}
           onChange={setZinssatz}
-          min={0.1}
+          min={0}
           max={15}
           step={0.05}
           unit="%"
@@ -51,38 +58,36 @@ export default function AnnuitaetenRechner({ kreditsumme, zinssatz, laufzeit, se
         />
 
         <InputField
-          label="Laufzeit"
-          value={laufzeit}
-          onChange={setLaufzeit}
-          min={1}
-          max={40}
-          step={1}
-          unit="Jahre"
-          formatDisplay={(v) => `${v} Jahre`}
+          label="Monatliche Rate"
+          value={monatlicheRate}
+          onChange={setMonatlicheRate}
+          min={minRate}
+          max={maxRate}
+          step={10}
+          unit="€"
+          formatDisplay={(v) => `${formatEuro(v)}`}
         />
 
         <div className="sidebar-info">
           <div className="info-row">
             <span>Anfängliche Tilgungsrate</span>
-            <strong>
-              {(((result.monatlicheRate * 12 - kreditsumme * (zinssatz / 100)) / kreditsumme) * 100).toFixed(2)} %
-            </strong>
+            <strong>{tilgungsanteil} %</strong>
           </div>
           <div className="info-row">
-            <span>Effektiver Jahreszins</span>
-            <strong>{zinssatz.toFixed(2)} %</strong>
+            <span>Laufzeit</span>
+            <strong>{formatLaufzeit(result.laufzeitMonate)}</strong>
           </div>
         </div>
       </aside>
 
       <main className="main-content">
         <SummaryCards cards={[
-          { label: "Monatliche Rate", value: formatEuro(result.monatlicheRate), variant: "primary" },
+          { label: "Laufzeit", value: formatLaufzeit(result.laufzeitMonate), variant: "primary" },
           { label: "Gesamtzahlung", value: formatEuro(result.gesamtzahlung) },
           {
             label: "Gesamtzinsen",
             value: formatEuro(result.gesamtzinsen),
-            sub: `${((result.gesamtzinsen / result.gesamtzahlung) * 100).toFixed(1)}% der Gesamtzahlung`,
+            sub: result.gesamtzahlung > 0 ? `${((result.gesamtzinsen / result.gesamtzahlung) * 100).toFixed(1)}% der Gesamtzahlung` : undefined,
             variant: "zinsen",
           },
           { label: "Nettokredit", value: formatEuro(kreditsumme) },
@@ -102,16 +107,8 @@ export default function AnnuitaetenRechner({ kreditsumme, zinssatz, laufzeit, se
           </div>
         </div>
 
-        <AmortizationChart
-          yearly={result.tilgungsplan}
-          monthly={result.tilgungsplanMonatlich}
-          view={view}
-        />
-        <AmortizationTable
-          yearly={result.tilgungsplan}
-          monthly={result.tilgungsplanMonatlich}
-          view={view}
-        />
+        <AmortizationChart yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} />
+        <AmortizationTable yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} />
       </main>
     </div>
   );

@@ -4,7 +4,7 @@ import InputField from "./InputField";
 import SummaryCards from "./SummaryCards";
 import AmortizationChart from "./AmortizationChart";
 import AmortizationTable from "./AmortizationTable";
-import { formatEuro } from "../utils/format";
+import { formatEuro, formatLaufzeit } from "../utils/format";
 import type { SharedLoanParams } from "../types/loan";
 
 type View = "jährlich" | "monatlich";
@@ -15,12 +15,15 @@ const formatK = (v: number) => {
   return `${v} €`;
 };
 
-export default function RatentilgungRechner({ kreditsumme, zinssatz, laufzeit, setKreditsumme, setZinssatz, setLaufzeit }: SharedLoanParams) {
+export default function RatentilgungRechner({ kreditsumme, zinssatz, monatlicheRate, setKreditsumme, setZinssatz, setMonatlicheRate }: SharedLoanParams) {
   const [view, setView] = useState<View>("jährlich");
 
+  const minRate = 100;
+  const maxRate = 5_000;
+
   const result = useMemo(
-    () => calcRatentilgung({ kreditsumme, zinssatz, laufzeit }),
-    [kreditsumme, zinssatz, laufzeit]
+    () => calcRatentilgung({ kreditsumme, zinssatz, monatlicheRate }),
+    [kreditsumme, zinssatz, monatlicheRate]
   );
 
   return (
@@ -43,7 +46,7 @@ export default function RatentilgungRechner({ kreditsumme, zinssatz, laufzeit, s
           label="Sollzinssatz (p.a.)"
           value={zinssatz}
           onChange={setZinssatz}
-          min={0.1}
+          min={0}
           max={15}
           step={0.05}
           unit="%"
@@ -51,14 +54,14 @@ export default function RatentilgungRechner({ kreditsumme, zinssatz, laufzeit, s
         />
 
         <InputField
-          label="Laufzeit"
-          value={laufzeit}
-          onChange={setLaufzeit}
-          min={1}
-          max={40}
-          step={1}
-          unit="Jahre"
-          formatDisplay={(v) => `${v} Jahre`}
+          label="Erste monatliche Rate"
+          value={monatlicheRate}
+          onChange={setMonatlicheRate}
+          min={minRate}
+          max={maxRate}
+          step={10}
+          unit="€"
+          formatDisplay={(v) => `${formatEuro(v)}`}
         />
 
         <div className="sidebar-info">
@@ -67,20 +70,20 @@ export default function RatentilgungRechner({ kreditsumme, zinssatz, laufzeit, s
             <strong>{formatEuro(result.monatlicheTilgung)}</strong>
           </div>
           <div className="info-row">
-            <span>Effektiver Jahreszins</span>
-            <strong>{zinssatz.toFixed(2)} %</strong>
+            <span>Laufzeit</span>
+            <strong>{formatLaufzeit(result.laufzeitMonate)}</strong>
           </div>
         </div>
       </aside>
 
       <main className="main-content">
         <SummaryCards cards={[
-          { label: "Erste Rate", value: formatEuro(result.ersteRate), variant: "primary" },
+          { label: "Laufzeit", value: formatLaufzeit(result.laufzeitMonate), variant: "primary" },
           { label: "Letzte Rate", value: formatEuro(result.letzteRate) },
           {
             label: "Gesamtzinsen",
             value: formatEuro(result.gesamtzinsen),
-            sub: `${((result.gesamtzinsen / result.gesamtzahlung) * 100).toFixed(1)}% der Gesamtzahlung`,
+            sub: result.gesamtzahlung > 0 ? `${((result.gesamtzinsen / result.gesamtzahlung) * 100).toFixed(1)}% der Gesamtzahlung` : undefined,
             variant: "zinsen",
           },
           { label: "Gesamtzahlung", value: formatEuro(result.gesamtzahlung) },
@@ -100,16 +103,8 @@ export default function RatentilgungRechner({ kreditsumme, zinssatz, laufzeit, s
           </div>
         </div>
 
-        <AmortizationChart
-          yearly={result.tilgungsplan}
-          monthly={result.tilgungsplanMonatlich}
-          view={view}
-        />
-        <AmortizationTable
-          yearly={result.tilgungsplan}
-          monthly={result.tilgungsplanMonatlich}
-          view={view}
-        />
+        <AmortizationChart yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} />
+        <AmortizationTable yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} />
       </main>
     </div>
   );

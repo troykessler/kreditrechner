@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface InputFieldProps {
   label: string;
@@ -22,20 +22,36 @@ export default function InputField({
   formatDisplay,
 }: InputFieldProps) {
   const [focused, setFocused] = useState(false);
+  const [draft, setDraft] = useState("");
 
-  // When focused: show raw number for easy editing. When blurred: show formatted value.
-  const displayValue = focused ? value.toString() : (formatDisplay ? formatDisplay(value) : value.toString());
-  // Hide unit label when formatDisplay already embeds the unit
+  // When not focused, keep draft in sync with external value (e.g. slider changes)
+  useEffect(() => {
+    if (!focused) setDraft(value.toString());
+  }, [value, focused]);
+
   const showUnit = !formatDisplay;
+  const displayValue = focused ? draft : (formatDisplay ? formatDisplay(value) : value.toString());
 
-  const handleChange = (raw: string) => {
+  const commit = (raw: string) => {
     const n = parseFloat(raw.replace(/[^0-9.,]/g, "").replace(",", "."));
     if (!isNaN(n)) onChange(Math.min(max, Math.max(min, n)));
   };
 
-  const handleBlur = (raw: string) => {
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setDraft(value.toString());
+    setFocused(true);
+    e.target.select();
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setFocused(false);
-    handleChange(raw);
+    commit(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    }
   };
 
   return (
@@ -47,9 +63,10 @@ export default function InputField({
             type="text"
             className="input-number"
             value={displayValue}
-            onFocus={(e) => { setFocused(true); e.target.select(); }}
-            onChange={(e) => handleChange(e.target.value)}
-            onBlur={(e) => handleBlur(e.target.value)}
+            onFocus={handleFocus}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
           />
           {showUnit && <span className="input-unit">{unit}</span>}
         </div>

@@ -1,80 +1,86 @@
-import type { AnnuitaetParams, MonthlyEntry, YearlyEntry } from "../types/loan";
+import type { MonthlyEntry, YearlyEntry } from "../types/loan";
+
+export interface RatentilgungInput {
+  kreditsumme: number;
+  zinssatz: number;   // annual percent
+  monatlicheRate: number; // first month's rate (the highest)
+}
 
 export interface RatentilgungResult {
   monatlicheTilgung: number;   // fixed principal portion per month
-  ersteRate: number;           // highest rate (month 1)
-  letzteRate: number;          // lowest rate (last month)
+  laufzeitMonate: number;
+  letzteRate: number;
   gesamtzahlung: number;
   gesamtzinsen: number;
   tilgungsplan: YearlyEntry[];
   tilgungsplanMonatlich: MonthlyEntry[];
 }
 
-export function calcRatentilgung(params: AnnuitaetParams): RatentilgungResult {
-  const { kreditsumme, zinssatz, laufzeit } = params;
-
+export function calcRatentilgung(input: RatentilgungInput): RatentilgungResult {
+  const { kreditsumme, zinssatz, monatlicheRate } = input;
   const r = zinssatz / 100 / 12;
-  const n = laufzeit * 12;
 
-  // Fixed monthly principal repayment
-  const monatlicheTilgung = kreditsumme / n;
+  const firstMonthInterest = kreditsumme * r;
+  const monatlicheTilgung = monatlicheRate - firstMonthInterest;
+
+  if (monatlicheTilgung <= 0) {
+    return { monatlicheTilgung: 0, laufzeitMonate: 0, letzteRate: 0, gesamtzahlung: 0, gesamtzinsen: 0, tilgungsplan: [], tilgungsplanMonatlich: [] };
+  }
+
+  const n = Math.ceil(kreditsumme / monatlicheTilgung);
 
   const tilgungsplan: YearlyEntry[] = [];
   const tilgungsplanMonatlich: MonthlyEntry[] = [];
-
   let restschuld = kreditsumme;
+  let jahresZinsen = 0, jahresTilgung = 0, jahresStartRate = 0;
+  let currentJahr = 1;
   let gesamtzahlung = 0;
-  let gesamtzinsen = 0;
-  let ersteRate = 0;
+  let letzteRate = 0;
 
-  for (let jahr = 1; jahr <= laufzeit; jahr++) {
-    let jahresZinsen = 0;
-    let jahresTilgung = 0;
-    let jahresStartRate = 0;
+  for (let monat = 1; monat <= n; monat++) {
+    const zinsbetrag = restschuld * r;
+    // Last month: only pay what's left
+    const tilgungsbetrag = Math.min(monatlicheTilgung, restschuld);
+    const rate = tilgungsbetrag + zinsbetrag;
 
-    for (let m = 0; m < 12; m++) {
-      const monat = (jahr - 1) * 12 + m + 1;
-      const zinsbetrag = restschuld * r;
-      const rate = monatlicheTilgung + zinsbetrag;
+    restschuld -= tilgungsbetrag;
+    if (Math.abs(restschuld) < 0.01) restschuld = 0;
 
-      restschuld -= monatlicheTilgung;
-      if (Math.abs(restschuld) < 0.01) restschuld = 0;
+    if (monat === 1 || (monat - 1) % 12 === 0) jahresStartRate = rate;
+    jahresZinsen += zinsbetrag;
+    jahresTilgung += tilgungsbetrag;
+    gesamtzahlung += rate;
+    letzteRate = rate;
 
-      jahresZinsen += zinsbetrag;
-      jahresTilgung += monatlicheTilgung;
-      gesamtzahlung += rate;
-      gesamtzinsen += zinsbetrag;
-
-      if (monat === 1) ersteRate = rate;
-      if (m === 0) jahresStartRate = rate;
-
-      tilgungsplanMonatlich.push({
-        monat,
-        rate,
-        zinsbetrag,
-        tilgungsbetrag: monatlicheTilgung,
-        restschuld: Math.max(0, restschuld),
-      });
-    }
-
-    tilgungsplan.push({
-      jahr,
-      zinsbetrag: jahresZinsen,
-      tilgungsbetrag: jahresTilgung,
+    tilgungsplanMonatlich.push({
+      monat,
+      rate,
+      zinsbetrag,
+      tilgungsbetrag,
       restschuld: Math.max(0, restschuld),
-      // store annualised start-of-year rate so table can show /12
-      rate: jahresStartRate * 12,
     });
-  }
 
-  const letzteRate = tilgungsplanMonatlich[tilgungsplanMonatlich.length - 1].rate;
+    const isEndOfYear = monat % 12 === 0;
+    const isLastMonth = monat === n;
+    if (isEndOfYear || isLastMonth) {
+      tilgungsplan.push({
+        jahr: currentJahr++,
+        zinsbetrag: jahresZinsen,
+        tilgungsbetrag: jahresTilgung,
+        restschuld: Math.max(0, restschuld),
+        rate: jahresStartRate * 12,
+      });
+      jahresZinsen = 0;
+      jahresTilgung = 0;
+    }
+  }
 
   return {
     monatlicheTilgung,
-    ersteRate,
+    laufzeitMonate: n,
     letzteRate,
     gesamtzahlung,
-    gesamtzinsen,
+    gesamtzinsen: gesamtzahlung - kreditsumme,
     tilgungsplan,
     tilgungsplanMonatlich,
   };
