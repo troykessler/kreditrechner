@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { calcAnnuitaetendarlehen } from "../utils/annuitaetendarlehen";
+import { calcRatentilgung } from "../utils/ratentilgung";
 import InputField from "./InputField";
 import SummaryCards from "./SummaryCards";
-import { formatEuro } from "../utils/format";
 import AmortizationChart from "./AmortizationChart";
 import AmortizationTable from "./AmortizationTable";
+import { formatEuro } from "../utils/format";
 
 type View = "jährlich" | "monatlich";
 
@@ -14,14 +14,14 @@ const formatK = (v: number) => {
   return `${v} €`;
 };
 
-export default function AnnuitaetenRechner() {
+export default function RatentilgungRechner() {
   const [kreditsumme, setKreditsumme] = useState(300_000);
   const [zinssatz, setZinssatz] = useState(3.5);
   const [laufzeit, setLaufzeit] = useState(20);
   const [view, setView] = useState<View>("jährlich");
 
   const result = useMemo(
-    () => calcAnnuitaetendarlehen({ kreditsumme, zinssatz, laufzeit }),
+    () => calcRatentilgung({ kreditsumme, zinssatz, laufzeit }),
     [kreditsumme, zinssatz, laufzeit]
   );
 
@@ -65,10 +65,8 @@ export default function AnnuitaetenRechner() {
 
         <div className="sidebar-info">
           <div className="info-row">
-            <span>Anfängliche Tilgungsrate</span>
-            <strong>
-              {(((result.monatlicheRate * 12 - kreditsumme * (zinssatz / 100)) / kreditsumme) * 100).toFixed(2)} %
-            </strong>
+            <span>Monatliche Tilgung</span>
+            <strong>{formatEuro(result.monatlicheTilgung)}</strong>
           </div>
           <div className="info-row">
             <span>Effektiver Jahreszins</span>
@@ -79,15 +77,15 @@ export default function AnnuitaetenRechner() {
 
       <main className="main-content">
         <SummaryCards cards={[
-          { label: "Monatliche Rate", value: formatEuro(result.monatlicheRate), variant: "primary" },
-          { label: "Gesamtzahlung", value: formatEuro(result.gesamtzahlung) },
+          { label: "Erste Rate", value: formatEuro(result.ersteRate), variant: "primary" },
+          { label: "Letzte Rate", value: formatEuro(result.letzteRate) },
           {
             label: "Gesamtzinsen",
             value: formatEuro(result.gesamtzinsen),
             sub: `${((result.gesamtzinsen / result.gesamtzahlung) * 100).toFixed(1)}% der Gesamtzahlung`,
             variant: "zinsen",
           },
-          { label: "Nettokredit", value: formatEuro(kreditsumme) },
+          { label: "Gesamtzahlung", value: formatEuro(result.gesamtzahlung) },
         ]} />
 
         <div className="view-toggle-row">

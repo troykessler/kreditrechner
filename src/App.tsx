@@ -1,11 +1,13 @@
 import { useState } from "react";
 import AnnuitaetenRechner from "./components/AnnuitaetenRechner";
+import RatentilgungRechner from "./components/RatentilgungRechner";
 import "./App.css";
 
-type LoanType = "annuitaeten";
+type LoanType = "annuitaeten" | "ratentilgung";
 
-const LOAN_TYPES: { id: LoanType; label: string; available: boolean }[] = [
-  { id: "annuitaeten", label: "Annuitätendarlehen", available: true },
+const LOAN_TYPES: { id: LoanType; label: string }[] = [
+  { id: "annuitaeten", label: "Annuitätendarlehen" },
+  { id: "ratentilgung", label: "Ratentilgung" },
 ];
 
 export default function App() {
@@ -23,9 +25,8 @@ export default function App() {
             {LOAN_TYPES.map((t) => (
               <button
                 key={t.id}
-                className={`tab-btn ${active === t.id ? "active" : ""} ${!t.available ? "disabled" : ""}`}
-                onClick={() => t.available && setActive(t.id)}
-                disabled={!t.available}
+                className={`tab-btn ${active === t.id ? "active" : ""}`}
+                onClick={() => setActive(t.id)}
               >
                 {t.label}
               </button>
@@ -36,6 +37,7 @@ export default function App() {
 
       <div className="page-wrapper">
         {active === "annuitaeten" && <AnnuitaetenRechner />}
+        {active === "ratentilgung" && <RatentilgungRechner />}
       </div>
     </div>
   );
