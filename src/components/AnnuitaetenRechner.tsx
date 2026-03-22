@@ -83,14 +83,14 @@ export default function AnnuitaetenRechner({ kreditsumme, zinssatz, monatlicheRa
       <main className="main-content">
         <SummaryCards cards={[
           { label: "Laufzeit", value: formatLaufzeit(result.laufzeitMonate), variant: "primary" },
-          { label: "Gesamtzahlung", value: formatEuro(result.gesamtzahlung) },
+          { label: "Letzte Rate", value: formatEuro(monatlicheRate) },
           {
             label: "Gesamtzinsen",
             value: formatEuro(result.gesamtzinsen),
             sub: result.gesamtzahlung > 0 ? `${((result.gesamtzinsen / result.gesamtzahlung) * 100).toFixed(1)}% der Gesamtzahlung` : undefined,
             variant: "zinsen",
           },
-          { label: "Nettokredit", value: formatEuro(kreditsumme) },
+          { label: "Gesamtzahlung", value: formatEuro(result.gesamtzahlung) },
         ]} />
 
         <AmortizationChart yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} onViewChange={setView} />
