@@ -12,10 +12,13 @@ import {
 import type { YearlyEntry, MonthlyEntry } from "../types/loan";
 import { formatEuro } from "../utils/format";
 
+type View = "jährlich" | "monatlich";
+
 interface Props {
   yearly: YearlyEntry[];
   monthly: MonthlyEntry[];
-  view: "jährlich" | "monatlich";
+  view: View;
+  onViewChange: (v: View) => void;
 }
 
 const CustomTooltip = ({ active, payload, label, view }: any) => {
@@ -34,7 +37,7 @@ const CustomTooltip = ({ active, payload, label, view }: any) => {
   );
 };
 
-export default function AmortizationChart({ yearly, monthly, view }: Props) {
+export default function AmortizationChart({ yearly, monthly, view, onViewChange }: Props) {
   const data: { period: number; zinsbetrag: number; tilgungsbetrag: number; restschuld: number }[] =
     view === "monatlich"
       ? monthly.map((m) => ({ period: m.monat, zinsbetrag: m.zinsbetrag, tilgungsbetrag: m.tilgungsbetrag, restschuld: m.restschuld }))
@@ -49,7 +52,20 @@ export default function AmortizationChart({ yearly, monthly, view }: Props) {
 
   return (
     <div className="chart-container">
-      <h2 className="section-title">Tilgungsplan – Übersicht</h2>
+      <div className="chart-header">
+        <h2 className="section-title" style={{ marginBottom: 0 }}>Tilgungsplan – Übersicht</h2>
+        <div className="view-toggle">
+          {(["jährlich", "monatlich"] as View[]).map((v) => (
+            <button
+              key={v}
+              className={`view-toggle-btn ${view === v ? "active" : ""}`}
+              onClick={() => onViewChange(v)}
+            >
+              {v.charAt(0).toUpperCase() + v.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
       <ResponsiveContainer width="100%" height={340}>
         <ComposedChart data={data} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />

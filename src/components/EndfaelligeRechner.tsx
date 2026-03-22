@@ -87,21 +87,7 @@ export default function EndfaelligeRechner({ kreditsumme, zinssatz, setKreditsum
           { label: "Gesamtzahlung", value: formatEuro(result.gesamtzahlung) },
         ]} />
 
-        <div className="view-toggle-row">
-          <div className="view-toggle">
-            {(["jährlich", "monatlich"] as View[]).map((v) => (
-              <button
-                key={v}
-                className={`view-toggle-btn ${view === v ? "active" : ""}`}
-                onClick={() => setView(v)}
-              >
-                {v.charAt(0).toUpperCase() + v.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <AmortizationChart yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} />
+        <AmortizationChart yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} onViewChange={setView} />
         <AmortizationTable yearly={result.tilgungsplan} monthly={result.tilgungsplanMonatlich} view={view} />
       </main>
     </div>

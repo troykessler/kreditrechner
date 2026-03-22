@@ -204,11 +204,11 @@ export default function KreditbedarfRechner({ state, setState, onAdopt, onKredit
 
             {/* Donut chart */}
             <div className="donut-wrapper">
-              <PieChart width={200} height={200}>
+              <PieChart width={200} height={200} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                 <Pie
                   data={donutData}
-                  cx={100}
-                  cy={100}
+                  cx="50%"
+                  cy="50%"
                   innerRadius={58}
                   outerRadius={88}
                   dataKey="value"
