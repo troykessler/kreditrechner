@@ -1,13 +1,15 @@
 import { useState } from "react";
 import AnnuitaetenRechner from "./components/AnnuitaetenRechner";
 import RatentilgungRechner from "./components/RatentilgungRechner";
+import EndfaelligeRechner from "./components/EndfaelligeRechner";
 import "./App.css";
 
-type LoanType = "annuitaeten" | "ratentilgung";
+type LoanType = "annuitaeten" | "ratentilgung" | "endfaellige";
 
 const LOAN_TYPES: { id: LoanType; label: string }[] = [
   { id: "annuitaeten", label: "Annuitätendarlehen" },
   { id: "ratentilgung", label: "Ratentilgung" },
+  { id: "endfaellige", label: "Endfällige Tilgung" },
 ];
 
 export default function App() {
@@ -38,6 +40,7 @@ export default function App() {
       <div className="page-wrapper">
         {active === "annuitaeten" && <AnnuitaetenRechner />}
         {active === "ratentilgung" && <RatentilgungRechner />}
+        {active === "endfaellige" && <EndfaelligeRechner />}
       </div>
     </div>
   );
