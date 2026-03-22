@@ -385,6 +385,317 @@ body { background: var(--bg); min-height: 100vh; }
   color: var(--text);
 }
 
+/* ── Dropdown ─────────────────────────────────────────────────── */
+.dropdown {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 12px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7094' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  transition: border-color 0.15s;
+}
+
+.dropdown:focus { border-color: var(--accent); }
+
+/* ── Checkbox ─────────────────────────────────────────────────── */
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkbox {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  cursor: pointer;
+  margin-top: 2px;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.checkbox:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.checkbox-row label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkbox-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ── Nebenkosten breakdown ────────────────────────────────────── */
+.breakdown-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.breakdown-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(42, 46, 66, 0.5);
+}
+
+.breakdown-row:last-child { border-bottom: none; }
+
+.breakdown-total {
+  padding-top: 14px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border) !important;
+  border-bottom: none !important;
+}
+
+.breakdown-total .breakdown-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.breakdown-total .breakdown-amount {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.breakdown-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.breakdown-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.breakdown-pct {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.breakdown-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Stacked bar ──────────────────────────────────────────────── */
+.breakdown-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stack-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stack-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  overflow: hidden;
+  display: flex;
+}
+
+.stack-segment { height: 100%; transition: width 0.3s ease; }
+.stack-eigen { background: var(--color-tilgung); }
+.stack-kredit { background: var(--accent); }
+
+.stack-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  align-items: center;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.legend-dot.eigen { background: var(--color-tilgung); }
+.legend-dot.kredit { background: var(--accent); }
+
+/* ── Breakdown grid (table + donut) ───────────────────────────── */
+.breakdown-body {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 32px;
+  align-items: center;
+}
+
+.breakdown-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ── Donut chart ──────────────────────────────────────────────── */
+.donut-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-pct {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.donut-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Adopt split button ───────────────────────────────────────── */
+.adopt-group {
+  position: relative;
+  display: flex;
+  border-radius: var(--radius);
+  overflow: visible;
+}
+
+.adopt-btn-main {
+  flex: 1;
+  padding: 14px 20px;
+  background: var(--accent-light);
+  border: 1px solid rgba(108, 143, 255, 0.3);
+  border-right: none;
+  border-radius: var(--radius) 0 0 var(--radius);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.adopt-btn-main:hover { background: rgba(108, 143, 255, 0.2); }
+
+.adopt-btn-arrow {
+  padding: 0 16px;
+  background: var(--accent-light);
+  border: 1px solid rgba(108, 143, 255, 0.3);
+  border-left: 1px solid rgba(108, 143, 255, 0.2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--accent);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.adopt-btn-arrow:hover { background: rgba(108, 143, 255, 0.2); }
+
+.adopt-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-width: 220px;
+  z-index: 50;
+}
+
+.adopt-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 11px 16px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.adopt-dropdown-item:hover {
+  background: var(--hover-bg);
+  color: var(--text);
+}
+
 /* ── View toggle ──────────────────────────────────────────────── */
 .view-toggle-row {
   display: flex;
@@ -427,6 +738,8 @@ body { background: var(--bg); min-height: 100vh; }
   .rechner-layout { grid-template-columns: 1fr; }
   .sidebar { position: static; }
   .summary-cards { grid-template-columns: repeat(2, 1fr); }
+  .breakdown-body { grid-template-columns: 1fr; }
+  .donut-wrapper { margin: 0 auto; }
 }
 
 @media (max-width: 540px) {
